@@ -5,18 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import survey.backend.enums.PoeType;
 
-import java.util.Date;
+import java.util.Set;
 
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter @Setter
-public class PoeDto {
-    private Long id;
-    private String title;
-    private Date beginDate;
-    private Date endDate;
-    private PoeType poeType;
+@Getter
+@Setter
+public class PoeFullDto extends PoeDto {
+    private Set<TraineeDto> trainees;
 }
