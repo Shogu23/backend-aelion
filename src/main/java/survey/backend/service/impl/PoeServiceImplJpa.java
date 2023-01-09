@@ -65,7 +65,18 @@ public class PoeServiceImplJpa implements PoeService {
 
     @Override
     public Optional<PoeFullDto> addTrainees(long poeId, Collection<Long> traineeIds) {
-        return Optional.empty();
+        return poeRepository.findById(poeId)
+                .flatMap(poeEntity -> {
+                    var traineeEntities = StreamUtils.toStream(traineeRepository.findAllById(traineeIds))
+                            .toList();
+                    if (traineeIds.size() != traineeEntities.size()) {
+                        return Optional.empty();
+                    }
+                    poeEntity.getTrainees().addAll(traineeEntities);
+                    poeRepository.save(poeEntity);
+                    return Optional.of(modelMapper.map(poeEntity, PoeFullDto.class));
+                });
+
     }
 
     @Override

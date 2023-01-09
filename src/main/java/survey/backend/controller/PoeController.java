@@ -10,6 +10,7 @@ import survey.backend.service.PoeService;
 import survey.backend.service.impl.PoeServiceImplJpa;
 
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/poe")
@@ -35,6 +36,17 @@ public class PoeController {
         return service.addTrainee(poeId, traineeId)
                 .orElseThrow(() -> {
                     throw NoDataFoundError.withIds("Poe or Trainee", poeId, traineeId);
+                });
+    }
+
+    @PatchMapping("/{poeId}/addTrainees")
+    public PoeFullDto addTrainees(
+            @PathVariable("poeId") long poeId,
+            @RequestBody List<Long> traineeIds)
+    {
+        return service.addTrainees(poeId, traineeIds)
+                .orElseThrow(() -> {
+                    throw NoDataFoundError.withIds("Poe or Trainee", poeId);
                 });
     }
 }
