@@ -8,6 +8,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import survey.backend.components.JwtUtil;
 import survey.backend.dto.SignupMessage;
@@ -18,6 +19,7 @@ import survey.backend.error.jwt.DisabledUserException;
 import survey.backend.error.jwt.InvalidCredentialsException;
 import survey.backend.service.UserAuthService;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.stream.Collectors;
 @RestController
@@ -38,41 +40,38 @@ public class UserController {
     }
 
     @PostMapping("signin")
-    public ResponseEntity<UserResponseDto> generateJwtToken(@RequestBody UserRequestDto request) {
-        Authentication authentication = null;
-
+    public UserResponseDto generateJwtToken(@RequestBody UserRequestDto request) {
         try {
-            authentication = this.authenticationManager
+            Authentication  authentication = this.authenticationManager
                     .authenticate(
                             new UsernamePasswordAuthenticationToken(
                                     request.getUserLogin(),
                                     request.getUserPassword()
                             )
                     );
+            // Got a Spring Security User
+            User user = (User) authentication.getPrincipal();
+
+            Set<String> roles = user
+                    .getAuthorities()
+                    .stream().map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toSet());
+
+            // Make a token from "authentication" object
+            String token = jwtUtil.generateToken(authentication);
+
+            // Create a Response DTO to send to client
+            UserResponseDto response = new UserResponseDto();
+            response.setJwtToken(token);
+            response.setRoles(new ArrayList<>(roles));
+
+            return response;
 
         } catch (DisabledException e) {
             throw new DisabledUserException();
         } catch (BadCredentialsException e) {
             throw new InvalidCredentialsException();
         }
-
-        // Got a Spring Security User
-        User user = (User) authentication.getPrincipal();
-
-        Set<String> roles = user
-                .getAuthorities()
-                .stream().map(r -> r.getAuthority())
-                .collect(Collectors.toSet());
-
-        // Make a token from "authentication" object
-        String token = jwtUtil.generateToken(authentication);
-
-        // Create a Response DTO to send to client
-        UserResponseDto response = new UserResponseDto();
-        response.setJwtToken(token);
-        response.setRoles(roles.stream().collect(Collectors.toList()));
-
-        return new ResponseEntity<UserResponseDto>(response, HttpStatus.OK);
     }
 
 

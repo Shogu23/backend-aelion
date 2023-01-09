@@ -1,6 +1,7 @@
 package survey.backend.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import survey.backend.dto.PoeDto;
 import survey.backend.dto.PoeFullDto;
@@ -48,5 +49,13 @@ public class PoeController {
                 .orElseThrow(() -> {
                     throw NoDataFoundError.withIds("Poe or Trainee", poeId);
                 });
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void remove(@PathVariable("id") long id) {
+        if (!service.remove(id)) {
+            throw NoDataFoundError.withId("poe", id);
+        }
     }
 }
